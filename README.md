@@ -1,6 +1,6 @@
 # OpenAPI MCP Server
 
-An MCP server that provides tools for exploring large OpenAPI schemas without loading entire schemas into LLM context. Perfect for discovering and analyzing FastAPI endpoints, data models, and API structure efficiently.
+An MCP server that provides tools for exploring large OpenAPI schemas without loading entire schemas into LLM context. Perfect for discovering and analyzing endpoints, data models, and API structure efficiently.
 
 ## Features
 
