@@ -1,0 +1,88 @@
+# OpenAPI MCP Server
+
+An MCP server that provides tools for exploring large OpenAPI schemas without loading entire schemas into LLM context. Perfect for discovering and analyzing FastAPI endpoints, data models, and API structure efficiently.
+
+## Features
+
+- **API Configuration Management**: Save and manage multiple API configurations
+- **Schema Caching**: Automatic caching of OpenAPI schemas to avoid repeated downloads
+- **Endpoint Discovery**: List and search through API endpoints
+- **Detailed Schema Exploration**: Get comprehensive information about endpoints and data models
+- **Efficient Context Usage**: Explore large APIs without overwhelming LLM context windows
+
+## Installation
+
+1. Clone the repository:
+
+```bash
+git clone <your-repo-url>
+cd openapi-mcp-server
+```
+
+2. Install dependencies:
+
+```bash
+uv sync
+```
+
+## Usage
+
+### Running the Server
+
+```bash
+uv run python openapi_mcp_server.py
+```
+
+The server runs using stdio and integrates with MCP-compatible LLM clients.
+
+### Available Tools
+
+#### API Management
+
+- **`add_api`**: Add a new API configuration
+- **`list_saved_apis`**: List all saved API configurations
+- **`remove_api`**: Remove a saved API configuration
+
+#### API Exploration
+
+- **`get_api_info`**: Get general information about an API
+- **`list_endpoints`**: List all endpoints in an API
+- **`search_endpoints`**: Search endpoints by query
+- **`get_endpoint_details`**: Get detailed endpoint information
+- **`list_models`**: List all data models in an API
+- **`get_model_schema`**: Get detailed schema for a specific model
+
+## Configuration
+
+API configurations are automatically saved to `api_configs.json` in the working directory. The file structure:
+
+```json
+{
+  "apis": {
+    "api-name": {
+      "name": "api-name",
+      "url": "http://example.com",
+      "description": "Optional description"
+    }
+  }
+}
+```
+
+## API Requirements
+
+The server expects APIs to serve OpenAPI schemas at `/openapi.json` endpoint.
+
+## Architecture
+
+### Core Components
+
+- **`OpenAPICache`**: Manages schema caching and HTTP requests
+- **`ConfigManager`**: Handles persistent API configuration storage
+- **`OpenAPIExplorer`**: Main logic for schema exploration and analysis
+- **MCP Server**: Exposes functionality through standardized MCP tools
+
+### Data Models
+
+- **`ApiConfig`**: Configuration for saved APIs
+- **`EndpointInfo`**: Structured endpoint information
+- **`ModelInfo`**: Data model metadata
