@@ -15,7 +15,7 @@ An MCP server that provides tools for exploring large OpenAPI schemas without lo
 1. Clone the repository:
 
 ```bash
-git clone <your-repo-url>
+git clone git@github.com:nyudenkov/openapi-mcp-proxy.git
 cd openapi-mcp-server
 ```
 
@@ -30,7 +30,7 @@ uv sync
 ### Running the Server
 
 ```bash
-uv run python openapi_mcp_server.py
+uv run python main.py
 ```
 
 The server runs using stdio and integrates with MCP-compatible LLM clients.
