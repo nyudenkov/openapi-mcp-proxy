@@ -8,6 +8,7 @@ and detailed schema information retrieval.
 """
 
 import asyncio
+import hashlib
 import json
 import logging
 from pathlib import Path
@@ -16,12 +17,11 @@ from urllib.parse import urlparse
 
 import aiofiles
 import httpx
-from mcp.server import Server, NotificationOptions
+from mcp.server import NotificationOptions, Server
 from mcp.server.models import InitializationOptions
 from mcp.server.stdio import stdio_server
-from mcp.types import Tool, TextContent
+from mcp.types import TextContent, Tool
 from pydantic import BaseModel, HttpUrl, ValidationError
-
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -34,6 +34,7 @@ class ApiConfig(BaseModel):
     name: str
     url: HttpUrl
     description: Optional[str] = None
+    headers: Dict[str, str] = {}
 
 
 class ApiConfigStorage(BaseModel):
@@ -70,24 +71,33 @@ class OpenAPICache:
         self._cache: Dict[str, Dict[str, Any]] = {}
         self._client = httpx.AsyncClient(timeout=30.0)
 
-    async def get_schema(self, url: str) -> Dict[str, Any]:
+    async def get_schema(
+        self, url: str, headers: Optional[Dict[str, str]] = None
+    ) -> Dict[str, Any]:
         """Get OpenAPI schema, using cache if available"""
-        if url not in self._cache:
+        cache_key = url
+        if headers:
+            headers_hash = hashlib.md5(
+                str(sorted(headers.items())).encode()
+            ).hexdigest()
+            cache_key = f"{url}#{headers_hash}"
+
+        if cache_key not in self._cache:
             try:
                 # Ensure URL ends with /openapi.json
                 if not url.endswith("/openapi.json"):
                     url = url.rstrip("/") + "/openapi.json"
 
-                response = await self._client.get(url)
+                response = await self._client.get(url, headers=headers)
                 response.raise_for_status()
                 schema = response.json()
-                self._cache[url] = schema
+                self._cache[cache_key] = schema
                 logger.info(f"Cached OpenAPI schema from {url}")
             except Exception as e:
                 logger.error(f"Failed to fetch OpenAPI schema from {url}: {e}")
                 raise
 
-        return self._cache[url]
+        return self._cache[cache_key]
 
     async def close(self):
         await self._client.aclose()
@@ -124,9 +134,17 @@ class ConfigManager:
             logger.error(f"Failed to save configuration: {e}")
             raise
 
-    async def add_api(self, name: str, url: str, description: Optional[str] = None):
+    async def add_api(
+        self,
+        name: str,
+        url: str,
+        description: Optional[str] = None,
+        headers: Optional[Dict[str, str]] = None,
+    ):
         try:
-            api_config = ApiConfig(name=name, url=url, description=description)
+            api_config = ApiConfig(
+                name=name, url=url, description=description, headers=headers or {}
+            )
             self._storage.apis[name] = api_config
             await self.save_config()
             return f"Added API '{name}' with URL {url}"
@@ -164,6 +182,21 @@ class ConfigManager:
 
         raise ValueError(f"Invalid API identifier: {api_identifier}")
 
+    def get_api_config(self, api_identifier: str) -> tuple[str, Dict[str, str]]:
+        """Get API URL and headers for the given identifier"""
+        if api_identifier in self._storage.apis:
+            config = self._storage.apis[api_identifier]
+            return str(config.url), config.headers
+
+        try:
+            parsed = urlparse(api_identifier)
+            if parsed.scheme and parsed.netloc:
+                return api_identifier, {}
+        except Exception:
+            pass
+
+        raise ValueError(f"Invalid API identifier: {api_identifier}")
+
 
 class OpenAPIExplorer:
     """Main class for exploring OpenAPI schemas"""
@@ -173,8 +206,8 @@ class OpenAPIExplorer:
         self.cache = cache
 
     async def get_api_info(self, api_identifier: str) -> Dict[str, Any]:
-        url = self.config_manager.get_api_url(api_identifier)
-        schema = await self.cache.get_schema(url)
+        url, headers = self.config_manager.get_api_config(api_identifier)
+        schema = await self.cache.get_schema(url, headers)
 
         info = schema.get("info", {})
         return {
@@ -186,8 +219,8 @@ class OpenAPIExplorer:
         }
 
     async def list_endpoints(self, api_identifier: str) -> List[EndpointInfo]:
-        url = self.config_manager.get_api_url(api_identifier)
-        schema = await self.cache.get_schema(url)
+        url, headers = self.config_manager.get_api_config(api_identifier)
+        schema = await self.cache.get_schema(url, headers)
 
         endpoints = []
         paths = schema.get("paths", {})
@@ -240,8 +273,8 @@ class OpenAPIExplorer:
     async def get_endpoint_details(
         self, api_identifier: str, path: str, method: str
     ) -> Dict[str, Any]:
-        url = self.config_manager.get_api_url(api_identifier)
-        schema = await self.cache.get_schema(url)
+        url, headers = self.config_manager.get_api_config(api_identifier)
+        schema = await self.cache.get_schema(url, headers)
 
         paths = schema.get("paths", {})
         if path not in paths:
@@ -271,8 +304,8 @@ class OpenAPIExplorer:
         return details
 
     async def list_models(self, api_identifier: str) -> List[ModelInfo]:
-        url = self.config_manager.get_api_url(api_identifier)
-        schema = await self.cache.get_schema(url)
+        url, headers = self.config_manager.get_api_config(api_identifier)
+        schema = await self.cache.get_schema(url, headers)
 
         models = []
         components = schema.get("components", {})
@@ -293,8 +326,8 @@ class OpenAPIExplorer:
     async def get_model_schema(
         self, api_identifier: str, model_name: str
     ) -> Dict[str, Any]:
-        url = self.config_manager.get_api_url(api_identifier)
-        schema = await self.cache.get_schema(url)
+        url, headers = self.config_manager.get_api_config(api_identifier)
+        schema = await self.cache.get_schema(url, headers)
 
         components = schema.get("components", {})
         schemas = components.get("schemas", {})
@@ -332,6 +365,11 @@ async def handle_list_tools() -> List[Tool]:
                     "description": {
                         "type": "string",
                         "description": "Optional description",
+                    },
+                    "headers": {
+                        "type": "object",
+                        "description": "Optional HTTP headers for authentication (e.g., {'Authorization': 'Bearer token', 'X-API-Key': 'key'})",
+                        "additionalProperties": {"type": "string"},
                     },
                 },
                 "required": ["name", "url"],
@@ -438,7 +476,10 @@ async def handle_call_tool(name: str, arguments: Dict[str, Any]) -> List[TextCon
     try:
         if name == "add_api":
             result = await config_manager.add_api(
-                arguments["name"], arguments["url"], arguments.get("description")
+                arguments["name"],
+                arguments["url"],
+                arguments.get("description"),
+                arguments.get("headers"),
             )
             return [TextContent(type="text", text=result)]
 
