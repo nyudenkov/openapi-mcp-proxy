@@ -84,10 +84,6 @@ class OpenAPICache:
 
         if cache_key not in self._cache:
             try:
-                # Ensure URL ends with /openapi.json
-                if not url.endswith("/openapi.json"):
-                    url = url.rstrip("/") + "/openapi.json"
-
                 response = await self._client.get(url, headers=headers)
                 response.raise_for_status()
                 schema = response.json()
@@ -443,7 +439,18 @@ async def handle_list_tools() -> List[Tool]:
         ),
         Tool(
             name="list_models",
-            description="List all data models in an API",
+            description="List all data models in an API (short format)",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "api": {"type": "string", "description": "API name or direct URL"}
+                },
+                "required": ["api"],
+            },
+        ),
+        Tool(
+            name="list_models_detailed",
+            description="List all data models in an API with detailed information",
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -570,6 +577,17 @@ async def handle_call_tool(name: str, arguments: Dict[str, Any]) -> List[TextCon
             return [TextContent(type="text", text=result)]
 
         elif name == "list_models":
+            models = await explorer.list_models(arguments["api"])
+            if not models:
+                return [TextContent(type="text", text="No models found")]
+
+            result = f"Found {len(models)} models:\n\n"
+            for model in models:
+                result += f"- {model.name} ({model.type})\n"
+
+            return [TextContent(type="text", text=result)]
+
+        elif name == "list_models_detailed":
             models = await explorer.list_models(arguments["api"])
             if not models:
                 return [TextContent(type="text", text="No models found")]
