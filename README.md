@@ -17,20 +17,49 @@ An MCP server that provides tools for exploring large OpenAPI schemas without lo
 
 </div>
 
-## Installation
+## Prerequisites
 
-1. Clone the repository:
+- **Python 3.13+**: The server requires Python 3.13 or later
+- **uv**: Fast Python package installer and resolver ([installation guide](https://docs.astral.sh/uv/getting-started/installation/))
+- **MCP-compatible client**: Claude Desktop, Claude Code CLI, Cursor, or other MCP clients
+
+### Installing uv
+
+**macOS/Linux:**
 
 ```bash
-git clone git@github.com:nyudenkov/openapi-mcp-proxy.git
-cd openapi-mcp-server
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-2. Install dependencies:
+**Using pip:**
+
+```bash
+pip install uv
+```
+
+## Installation
+
+1. **Clone the repository:**
+
+```bash
+git clone https://github.com/nyudenkov/openapi-mcp-proxy.git
+cd openapi-mcp-proxy
+```
+
+2. **Install dependencies:**
 
 ```bash
 uv sync
 ```
+
+3. **Verify installation:**
+
+```bash
+# Test that the server starts correctly
+uv run python main.py
+```
+
+The server should start without errors.
 
 ## Usage
 
