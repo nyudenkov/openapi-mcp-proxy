@@ -19,7 +19,7 @@ An MCP server that provides tools for exploring large OpenAPI schemas without lo
 
 ## Prerequisites
 
-- **Python 3.13+**: The server requires Python 3.13 or later
+- **Python 3.12+**: The server requires Python 3.12 or later
 - **uv**: Fast Python package installer and resolver ([installation guide](https://docs.astral.sh/uv/getting-started/installation/))
 - **MCP-compatible client**: Claude Desktop, Claude Code CLI, Cursor, or other MCP clients
 
@@ -39,6 +39,87 @@ pip install uv
 
 ## Installation
 
+The OpenAPI MCP Proxy can be installed in several ways for maximum convenience:
+
+### 🐳 Docker (Recommended for Quick Start)
+
+**Using Docker directly:**
+
+```bash
+# Run directly from Docker Hub (when published)
+docker run -it --rm -v $(pwd)/data:/app/data ghcr.io/nyudenkov/openapi-mcp-proxy:latest
+
+# Or build locally
+git clone https://github.com/nyudenkov/openapi-mcp-proxy.git
+cd openapi-mcp-proxy
+docker build -t openapi-mcp-proxy .
+docker run -it --rm -v $(pwd)/data:/app/data openapi-mcp-proxy
+```
+
+**Using Docker Compose:**
+
+```bash
+git clone https://github.com/nyudenkov/openapi-mcp-proxy.git
+cd openapi-mcp-proxy
+docker-compose up
+```
+
+The Docker setup automatically creates a persistent volume for your API configurations.
+
+### ⚡ uvx (Recommended for Python Users)
+
+**Install and run with uvx (requires Python 3.12+):**
+
+```bash
+# Install uvx if you haven't already
+pip install uvx
+
+# Run directly without installing
+uvx --from git+https://github.com/nyudenkov/openapi-mcp-proxy.git openapi-mcp-proxy
+
+# Or install as a tool for repeated use
+uvx install git+https://github.com/nyudenkov/openapi-mcp-proxy.git
+openapi-mcp-proxy
+```
+
+### 🎯 Desktop Extension (DXT)
+
+**For Claude Desktop and other MCP-compatible applications:**
+
+This project includes a Desktop Extension (DXT) package for single-click installation in MCP-compatible applications:
+
+1. **Download the DXT package** (when available) or create it from source:
+   ```bash
+   # Install the DXT CLI tool
+   npm install -g @anthropic-ai/dxt
+   
+   # Clone this repository
+   git clone https://github.com/nyudenkov/openapi-mcp-proxy.git
+   cd openapi-mcp-proxy
+   
+   # Create the DXT package
+   dxt pack
+   ```
+
+2. **Install in Claude Desktop**: Open the generated `.dxt` file with Claude Desktop for automatic installation
+
+3. **Manual configuration**: Alternatively, configure manually in Claude Desktop's settings:
+   ```json
+   {
+     "mcpServers": {
+       "openapi-mcp-proxy": {
+         "command": "openapi-mcp-proxy"
+       }
+     }
+   }
+   ```
+
+The `manifest.json` file in this repository contains the complete DXT specification for this MCP server.
+
+### 🔧 Development Installation
+
+**For contributors and advanced users:**
+
 1. **Clone the repository:**
 
 ```bash
@@ -52,24 +133,51 @@ cd openapi-mcp-proxy
 uv sync
 ```
 
-3. **Verify installation:**
+3. **Run in development mode:**
 
 ```bash
-# Test that the server starts correctly
+# Using uv
 uv run python main.py
+
+# Or install in development mode
+uv pip install -e .
+openapi-mcp-proxy
 ```
 
-The server should start without errors.
+### 📦 pip Installation
+
+**Traditional pip installation:**
+
+```bash
+# From source
+pip install git+https://github.com/nyudenkov/openapi-mcp-proxy.git
+
+# Run after installation
+openapi-mcp-proxy
+```
 
 ## Usage
 
 ### Running the Server
 
+The server can be run in multiple ways depending on your installation method:
+
+**If installed via uvx or pip:**
+```bash
+openapi-mcp-proxy
+```
+
+**If using Docker:**
+```bash
+docker run -it --rm -v $(pwd)/data:/app/data openapi-mcp-proxy
+```
+
+**If running from source:**
 ```bash
 uv run python main.py
 ```
 
-The server runs using stdio and integrates with MCP-compatible LLM clients.
+The server runs using stdio and integrates with MCP-compatible LLM clients like Claude Desktop.
 
 ### Available Tools
 
