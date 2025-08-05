@@ -12,7 +12,6 @@ from openapi_mcp_proxy.tools.api_exploration import (
     GetEndpointDetailsTool,
     GetModelSchemaTool,
     ListEndpointsTool,
-    ListModelsDetailedTool,
     ListModelsTool,
     SearchEndpointsTool,
 )
@@ -48,7 +47,6 @@ class ToolRegistry:
             SearchEndpointsTool(self.config_manager, self.explorer),
             GetEndpointDetailsTool(self.config_manager, self.explorer),
             ListModelsTool(self.config_manager, self.explorer),
-            ListModelsDetailedTool(self.config_manager, self.explorer),
             GetModelSchemaTool(self.config_manager, self.explorer),
         ]
 

@@ -50,17 +50,55 @@ class ListEndpointsTool(APITool, ToolDefinitionMixin):
         return Tool(
             name=self.name,
             description=self.description,
-            inputSchema=self.create_api_input_schema(),
+            inputSchema=self.create_paginated_endpoint_input_schema(),
         )
 
     async def handle_call(self, arguments: Dict[str, Any]) -> List[TextContent]:
         try:
             self._validate_api_identifier(arguments["api"])
-            endpoints = await self.explorer.list_endpoints(arguments["api"])
-            result = self.explorer.format_endpoint_list(endpoints)
+
+            pagination = self.extract_pagination_params(arguments)
+            filters = self.extract_endpoint_filter_params(arguments)
+
+            paginated_result = await self.explorer.list_endpoints_paginated(
+                arguments["api"], pagination, filters
+            )
+
+            result = self._format_paginated_endpoint_response(paginated_result, filters)
             return self._create_text_response(result)
         except Exception as e:
             return self._create_error_response(e)
+
+    def _format_paginated_endpoint_response(self, paginated_result, filters) -> str:
+        """Format paginated endpoint response."""
+        result = ""
+
+        filter_display = filters.format_display()
+        if filter_display:
+            result += filter_display + "\n\n"
+
+        if filters and any(
+            [
+                filters.methods,
+                filters.tags_include,
+                filters.tags_exclude,
+                filters.has_authentication is not None,
+                filters.deprecated is not None,
+            ]
+        ):
+            result += f"Total Results: {paginated_result.total_count} endpoints (filtered)\n\n"
+        else:
+            result += f"Total Results: {paginated_result.total_count} endpoints\n\n"
+
+        if paginated_result.items:
+            for endpoint in paginated_result.items:
+                result += endpoint.format_display() + "\n"
+        else:
+            result += "No endpoints found\n"
+
+        result += "\n" + paginated_result.format_navigation()
+
+        return result
 
 
 class SearchEndpointsTool(APITool, ToolDefinitionMixin):
@@ -78,23 +116,62 @@ class SearchEndpointsTool(APITool, ToolDefinitionMixin):
         return Tool(
             name=self.name,
             description=self.description,
-            inputSchema=self.create_search_input_schema(),
+            inputSchema=self.create_paginated_search_input_schema(),
         )
 
     async def handle_call(self, arguments: Dict[str, Any]) -> List[TextContent]:
         try:
             self._validate_api_identifier(arguments["api"])
-            endpoints = await self.explorer.search_endpoints(
-                arguments["api"], arguments["query"]
+
+            pagination = self.extract_pagination_params(arguments)
+            filters = self.extract_endpoint_filter_params(arguments)
+
+            paginated_result = await self.explorer.search_endpoints_paginated(
+                arguments["api"], arguments["query"], pagination, filters
             )
-            if not endpoints:
-                result = f"No endpoints found matching '{arguments['query']}'"
-            else:
-                result = f"Found {len(endpoints)} endpoints matching '{arguments['query']}':\n\n"
-                result += self.explorer.format_endpoint_list(endpoints)
+
+            result = self._format_paginated_search_response(
+                paginated_result, arguments["query"], filters
+            )
             return self._create_text_response(result)
         except Exception as e:
             return self._create_error_response(e)
+
+    def _format_paginated_search_response(
+        self, paginated_result, query, filters
+    ) -> str:
+        """Format paginated search response."""
+        result = f"Search Query: '{query}'\n\n"
+
+        filter_display = filters.format_display()
+        if filter_display:
+            result += filter_display + "\n\n"
+
+        result += (
+            f"Total Results: {paginated_result.total_count} endpoints matching query"
+        )
+        if filters and any(
+            [
+                filters.methods,
+                filters.tags_include,
+                filters.tags_exclude,
+                filters.has_authentication is not None,
+                filters.deprecated is not None,
+            ]
+        ):
+            result += " (with filters applied)"
+        result += "\n\n"
+
+        # Show endpoints
+        if paginated_result.items:
+            for endpoint in paginated_result.items:
+                result += endpoint.format_display() + "\n"
+        else:
+            result += "No endpoints found\n"
+
+        result += "\n" + paginated_result.format_navigation()
+
+        return result
 
 
 class GetEndpointDetailsTool(APITool, ToolDefinitionMixin):
@@ -142,45 +219,63 @@ class ListModelsTool(APITool, ToolDefinitionMixin):
         return Tool(
             name=self.name,
             description=self.description,
-            inputSchema=self.create_api_input_schema(),
+            inputSchema=self.create_paginated_model_input_schema(),
         )
 
     async def handle_call(self, arguments: Dict[str, Any]) -> List[TextContent]:
         try:
             self._validate_api_identifier(arguments["api"])
-            models = await self.explorer.list_models(arguments["api"])
-            result = self.explorer.format_model_list(models, detailed=False)
+
+            pagination = self.extract_pagination_params(arguments)
+            filters = self.extract_model_filter_params(arguments)
+            include_details = arguments.get("include_details", False)
+
+            paginated_result = await self.explorer.list_models_paginated(
+                arguments["api"], pagination, filters
+            )
+
+            result = self._format_paginated_model_response(
+                paginated_result, filters, include_details
+            )
             return self._create_text_response(result)
         except Exception as e:
             return self._create_error_response(e)
 
+    def _format_paginated_model_response(
+        self, paginated_result, filters, include_details
+    ) -> str:
+        """Format paginated model response."""
+        result = ""
 
-class ListModelsDetailedTool(APITool, ToolDefinitionMixin):
-    """Tool for listing API data models with detailed information."""
+        filter_display = filters.format_display()
+        if filter_display:
+            result += filter_display + "\n\n"
 
-    def __init__(self, config_manager, explorer):
-        super().__init__(
-            name="list_models_detailed",
-            description="List all data models in an API with detailed information",
-            config_manager=config_manager,
-            explorer=explorer,
-        )
+        if filters and any(
+            [
+                filters.types,
+                filters.min_properties is not None,
+                filters.max_properties is not None,
+                filters.has_required_fields is not None,
+                filters.tags_include,
+                filters.tags_exclude,
+            ]
+        ):
+            result += (
+                f"Total Results: {paginated_result.total_count} models (filtered)\n\n"
+            )
+        else:
+            result += f"Total Results: {paginated_result.total_count} models\n\n"
 
-    def get_tool_definition(self) -> Tool:
-        return Tool(
-            name=self.name,
-            description=self.description,
-            inputSchema=self.create_api_input_schema(),
-        )
+        if paginated_result.items:
+            for model in paginated_result.items:
+                result += model.format_display(detailed=include_details) + "\n"
+        else:
+            result += "No models found\n"
 
-    async def handle_call(self, arguments: Dict[str, Any]) -> List[TextContent]:
-        try:
-            self._validate_api_identifier(arguments["api"])
-            models = await self.explorer.list_models(arguments["api"])
-            result = self.explorer.format_model_list(models, detailed=True)
-            return self._create_text_response(result)
-        except Exception as e:
-            return self._create_error_response(e)
+        result += "\n" + paginated_result.format_navigation()
+
+        return result
 
 
 class GetModelSchemaTool(APITool, ToolDefinitionMixin):

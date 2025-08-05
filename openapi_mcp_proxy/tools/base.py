@@ -6,6 +6,11 @@ from typing import Any, Dict, List
 
 from mcp.types import TextContent, Tool
 
+from openapi_mcp_proxy.models.pagination import (
+    EndpointFilterParams,
+    ModelFilterParams,
+    PaginationParams,
+)
 from openapi_mcp_proxy.services.config_manager import ConfigManager
 from openapi_mcp_proxy.services.openapi_explorer import OpenAPIExplorer
 
@@ -158,3 +163,154 @@ class ToolDefinitionMixin:
             },
             "required": ["api", "model_name"],
         }
+
+    @staticmethod
+    def create_pagination_properties() -> Dict[str, Any]:
+        """Create pagination properties for input schemas."""
+        return {
+            "page": {
+                "type": "integer",
+                "description": "Page number (1-based)",
+                "minimum": 1,
+                "default": 1,
+            },
+            "page_size": {
+                "type": "integer",
+                "description": "Items per page (max 100)",
+                "minimum": 1,
+                "maximum": 100,
+                "default": 50,
+            },
+        }
+
+    @staticmethod
+    def create_endpoint_filter_properties() -> Dict[str, Any]:
+        """Create endpoint filter properties for input schemas."""
+        return {
+            "methods": {
+                "type": "array",
+                "description": "Filter by HTTP methods (e.g., ['GET', 'POST'])",
+                "items": {"type": "string"},
+            },
+            "tags_include": {
+                "type": "array",
+                "description": "Include endpoints with these tags",
+                "items": {"type": "string"},
+            },
+            "tags_exclude": {
+                "type": "array",
+                "description": "Exclude endpoints with these tags",
+                "items": {"type": "string"},
+            },
+            "has_authentication": {
+                "type": "boolean",
+                "description": "Filter by authentication requirement",
+            },
+            "deprecated": {
+                "type": "boolean",
+                "description": "Filter by deprecation status",
+            },
+        }
+
+    @staticmethod
+    def create_model_filter_properties() -> Dict[str, Any]:
+        """Create model filter properties for input schemas."""
+        return {
+            "types": {
+                "type": "array",
+                "description": "Filter by model types (e.g., ['object', 'array', 'string'])",
+                "items": {"type": "string"},
+            },
+            "min_properties": {
+                "type": "integer",
+                "description": "Minimum number of properties",
+                "minimum": 0,
+            },
+            "max_properties": {
+                "type": "integer",
+                "description": "Maximum number of properties",
+                "minimum": 0,
+            },
+            "has_required_fields": {
+                "type": "boolean",
+                "description": "Filter by presence of required fields",
+            },
+            "tags_include": {
+                "type": "array",
+                "description": "Include models with these tags",
+                "items": {"type": "string"},
+            },
+            "tags_exclude": {
+                "type": "array",
+                "description": "Exclude models with these tags",
+                "items": {"type": "string"},
+            },
+        }
+
+    @staticmethod
+    def create_paginated_endpoint_input_schema() -> Dict[str, Any]:
+        """Create input schema for paginated endpoint operations."""
+        schema = ToolDefinitionMixin.create_api_input_schema()
+        schema["properties"].update(ToolDefinitionMixin.create_pagination_properties())
+        schema["properties"].update(
+            ToolDefinitionMixin.create_endpoint_filter_properties()
+        )
+        return schema
+
+    @staticmethod
+    def create_paginated_model_input_schema() -> Dict[str, Any]:
+        """Create input schema for paginated model operations."""
+        schema = ToolDefinitionMixin.create_api_input_schema()
+        schema["properties"].update(ToolDefinitionMixin.create_pagination_properties())
+        schema["properties"].update(
+            ToolDefinitionMixin.create_model_filter_properties()
+        )
+        schema["properties"]["include_details"] = {
+            "type": "boolean",
+            "description": "Include detailed information about models",
+            "default": False,
+        }
+        return schema
+
+    @staticmethod
+    def create_paginated_search_input_schema() -> Dict[str, Any]:
+        """Create input schema for paginated search operations."""
+        schema = ToolDefinitionMixin.create_search_input_schema()
+        schema["properties"].update(ToolDefinitionMixin.create_pagination_properties())
+        schema["properties"].update(
+            ToolDefinitionMixin.create_endpoint_filter_properties()
+        )
+        return schema
+
+    @staticmethod
+    def extract_pagination_params(arguments: Dict[str, Any]) -> PaginationParams:
+        """Extract pagination parameters from tool arguments."""
+        return PaginationParams(
+            page=arguments.get("page", 1),
+            page_size=arguments.get("page_size", 50),
+        )
+
+    @staticmethod
+    def extract_endpoint_filter_params(
+        arguments: Dict[str, Any],
+    ) -> EndpointFilterParams:
+        """Extract endpoint filter parameters from tool arguments."""
+        return EndpointFilterParams(
+            methods=arguments.get("methods"),
+            tags_include=arguments.get("tags_include"),
+            tags_exclude=arguments.get("tags_exclude"),
+            has_authentication=arguments.get("has_authentication"),
+            deprecated=arguments.get("deprecated"),
+        )
+
+    @staticmethod
+    def extract_model_filter_params(arguments: Dict[str, Any]) -> ModelFilterParams:
+        """Extract model filter parameters from tool arguments."""
+        return ModelFilterParams(
+            types=arguments.get("types"),
+            min_properties=arguments.get("min_properties"),
+            max_properties=arguments.get("max_properties"),
+            has_required_fields=arguments.get("has_required_fields"),
+            tags_include=arguments.get("tags_include"),
+            tags_exclude=arguments.get("tags_exclude"),
+        )

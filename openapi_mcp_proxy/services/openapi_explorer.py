@@ -2,9 +2,15 @@
 
 import json
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from openapi_mcp_proxy.models.endpoint import EndpointInfo
+from openapi_mcp_proxy.models.pagination import (
+    EndpointFilterParams,
+    ModelFilterParams,
+    PaginationParams,
+    PaginationResult,
+)
 from openapi_mcp_proxy.models.schema import ApiInfo, ModelInfo
 from openapi_mcp_proxy.services.config_manager import ConfigManager
 from openapi_mcp_proxy.services.openapi_cache import OpenAPICache
@@ -46,6 +52,12 @@ class OpenAPIExplorer:
         for path, path_info in paths.items():
             for method, operation in path_info.items():
                 if self._is_valid_http_method(method):
+                    deprecated = operation.get("deprecated", False)
+
+                    has_auth = bool(operation.get("security", [])) or bool(
+                        schema.get("security", [])
+                    )
+
                     endpoint = EndpointInfo(
                         path=path,
                         method=method.upper(),
@@ -53,6 +65,8 @@ class OpenAPIExplorer:
                         description=operation.get("description"),
                         tags=operation.get("tags", []),
                         operation_id=operation.get("operationId"),
+                        deprecated=deprecated,
+                        has_authentication=has_auth,
                     )
                     endpoints.append(endpoint)
 
@@ -116,12 +130,19 @@ class OpenAPIExplorer:
         schemas = components.get("schemas", {})
 
         for name, model_schema in schemas.items():
+            tags = []
+            if "x-tags" in model_schema:
+                tags = model_schema["x-tags"]
+            elif "tags" in model_schema:
+                tags = model_schema["tags"]
+
             model = ModelInfo(
                 name=name,
                 type=model_schema.get("type", "object"),
                 properties=model_schema.get("properties", {}),
                 required=model_schema.get("required", []),
                 description=model_schema.get("description"),
+                tags=tags,
             )
             models.append(model)
 
@@ -143,6 +164,116 @@ class OpenAPIExplorer:
 
         logger.info(f"Retrieved schema for model {model_name}")
         return {"name": model_name, "schema": schemas[model_name]}
+
+    async def list_endpoints_paginated(
+        self,
+        api_identifier: str,
+        pagination: PaginationParams,
+        filters: Optional[EndpointFilterParams] = None,
+    ) -> PaginationResult[EndpointInfo]:
+        """List endpoints with pagination and filtering."""
+        all_endpoints = await self.list_endpoints(api_identifier)
+
+        if filters:
+            filtered_endpoints = [
+                ep for ep in all_endpoints if ep.matches_filters(filters)
+            ]
+        else:
+            filtered_endpoints = all_endpoints
+
+        total_count = len(filtered_endpoints)
+        start_idx = pagination.get_offset()
+        end_idx = start_idx + pagination.get_limit()
+        paginated_endpoints = filtered_endpoints[start_idx:end_idx]
+
+        logger.info(
+            f"Paginated endpoints for API {api_identifier}: "
+            f"page {pagination.page}, showing {len(paginated_endpoints)} of {total_count}"
+        )
+
+        return PaginationResult.create(paginated_endpoints, total_count, pagination)
+
+    async def search_endpoints_paginated(
+        self,
+        api_identifier: str,
+        query: str,
+        pagination: PaginationParams,
+        filters: Optional[EndpointFilterParams] = None,
+    ) -> PaginationResult[EndpointInfo]:
+        """Search endpoints with pagination and filtering."""
+        all_endpoints = await self.list_endpoints(api_identifier)
+
+        query_filtered = [ep for ep in all_endpoints if ep.matches_query(query)]
+
+        if filters:
+            filtered_endpoints = [
+                ep for ep in query_filtered if ep.matches_filters(filters)
+            ]
+        else:
+            filtered_endpoints = query_filtered
+
+        total_count = len(filtered_endpoints)
+        start_idx = pagination.get_offset()
+        end_idx = start_idx + pagination.get_limit()
+        paginated_endpoints = filtered_endpoints[start_idx:end_idx]
+
+        logger.info(
+            f"Paginated search for '{query}' in API {api_identifier}: "
+            f"page {pagination.page}, showing {len(paginated_endpoints)} of {total_count}"
+        )
+
+        return PaginationResult.create(paginated_endpoints, total_count, pagination)
+
+    async def list_models_paginated(
+        self,
+        api_identifier: str,
+        pagination: PaginationParams,
+        filters: Optional[ModelFilterParams] = None,
+    ) -> PaginationResult[ModelInfo]:
+        """List models with pagination and filtering."""
+        all_models = await self.list_models(api_identifier)
+
+        if filters:
+            filtered_models = [
+                model for model in all_models if model.matches_filters(filters)
+            ]
+        else:
+            filtered_models = all_models
+
+        total_count = len(filtered_models)
+        start_idx = pagination.get_offset()
+        end_idx = start_idx + pagination.get_limit()
+        paginated_models = filtered_models[start_idx:end_idx]
+
+        logger.info(
+            f"Paginated models for API {api_identifier}: "
+            f"page {pagination.page}, showing {len(paginated_models)} of {total_count}"
+        )
+
+        return PaginationResult.create(paginated_models, total_count, pagination)
+
+    def paginate_results(
+        self, items: List, pagination: PaginationParams
+    ) -> PaginationResult:
+        """Generic pagination utility method."""
+        total_count = len(items)
+        start_idx = pagination.get_offset()
+        end_idx = start_idx + pagination.get_limit()
+        paginated_items = items[start_idx:end_idx]
+
+        return PaginationResult.create(paginated_items, total_count, pagination)
+
+    def filter_endpoints(
+        self, endpoints: List[EndpointInfo], filters: EndpointFilterParams
+    ) -> List[EndpointInfo]:
+        """Filter endpoints based on provided criteria."""
+        return [ep for ep in endpoints if ep.matches_filters(filters)]
+
+    def filter_models(
+        self, models: List[ModelInfo], filters: ModelFilterParams
+    ) -> List[ModelInfo]:
+        """Filter models based on provided criteria."""
+        return [model for model in models if model.matches_filters(filters)]
 
     def format_endpoint_list(self, endpoints: List[EndpointInfo]) -> str:
         """Format a list of endpoints for display."""

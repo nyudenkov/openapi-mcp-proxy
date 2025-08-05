@@ -4,9 +4,10 @@ An MCP server that provides tools for exploring large OpenAPI schemas without lo
 
 ## Features
 
-- **API Configuration Management**: Save and manage multiple API configurations
+- **API Configuration Management**: Save and manage multiple API configurations with authentication headers if needed
 - **Schema Caching**: Automatic caching of OpenAPI schemas to avoid repeated downloads
 - **Endpoint Discovery**: List and search through API endpoints
+- **Pagination Support**: Handle large APIs efficiently with configurable page sizes
 - **Detailed Schema Exploration**: Get comprehensive information about endpoints and data models
 - **Efficient Context Usage**: Explore large APIs without overwhelming LLM context windows
 
@@ -39,18 +40,56 @@ The server runs using stdio and integrates with MCP-compatible LLM clients.
 
 #### API Management
 
-- **`add_api`**: Add a new API configuration
+- **`add_api`**: Add a new API configuration with name, URL and optional description
+  - `name` (required): Short name for the API
+  - `url` (required): URL to the OpenAPI scheme (yaml/json)
+  - `description` (optional): Optional description
+  - `headers` (optional): Optional HTTP headers for authentication (e.g., {'Authorization': 'Bearer token', 'X-API-Key': 'key'})
+
 - **`list_saved_apis`**: List all saved API configurations
+
 - **`remove_api`**: Remove a saved API configuration
 
 #### API Exploration
 
 - **`get_api_info`**: Get general information about an API
-- **`list_endpoints`**: List all endpoints in an API
-- **`search_endpoints`**: Search endpoints by query
-- **`get_endpoint_details`**: Get detailed endpoint information
-- **`list_models`**: List all data models in an API
+
+- **`list_endpoints`**: List all endpoints in an API with pagination and filtering
+
+- **`search_endpoints`**: Search endpoints by query with pagination and filtering
+
+- **`get_endpoint_details`**: Get detailed information about a specific endpoint
+
+- **`list_models`**: List all data models in an API with pagination and filtering
+
 - **`get_model_schema`**: Get detailed schema for a specific model
+
+### Tools Capabilities
+
+#### Pagination
+
+All listing tools (`list_endpoints`, `search_endpoints`, `list_models`) support pagination to handle large APIs efficiently:
+
+- Default page size: 50 items
+- Responses include navigation information (current page, total pages, has next/previous)
+
+#### Advanced Filtering
+
+Tools are capable to filter results to find exactly what you need:
+
+**Endpoint Filtering:**
+
+- HTTP methods (GET, POST, PUT, DELETE, etc.)
+- Tags (include/exclude specific tags)
+- Authentication requirements
+- Deprecation status
+
+**Model Filtering:**
+
+- Model types (object, array, string, etc.)
+- Property count (min/max number of properties)
+- Required fields presence
+- Tags (include/exclude specific tags)
 
 ## Configuration
 
