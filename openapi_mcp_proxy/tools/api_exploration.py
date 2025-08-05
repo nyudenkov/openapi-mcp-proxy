@@ -196,7 +196,10 @@ class GetEndpointDetailsTool(APITool, ToolDefinitionMixin):
         try:
             self._validate_api_identifier(arguments["api"])
             details = await self.explorer.get_endpoint_details(
-                arguments["api"], arguments["path"], arguments["method"]
+                arguments["api"],
+                arguments["path"],
+                arguments["method"],
+                arguments["include_responses"],
             )
             result = self.explorer.format_endpoint_details(details)
             return self._create_text_response(result)

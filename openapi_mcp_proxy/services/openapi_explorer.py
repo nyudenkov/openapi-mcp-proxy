@@ -86,7 +86,11 @@ class OpenAPIExplorer:
         return filtered
 
     async def get_endpoint_details(
-        self, api_identifier: str, path: str, method: str
+        self,
+        api_identifier: str,
+        path: str,
+        method: str,
+        include_responses: bool = True,
     ) -> Dict[str, Any]:
         """Get detailed information about a specific endpoint."""
         url, headers = self.config_manager.get_api_config(api_identifier)
@@ -113,9 +117,11 @@ class OpenAPIExplorer:
             "operation_id": operation.get("operationId"),
             "parameters": operation.get("parameters", []),
             "request_body": operation.get("requestBody"),
-            "responses": operation.get("responses", {}),
             "security": operation.get("security", []),
         }
+
+        if include_responses:
+            details["responses"] = operation.get("responses", {})
 
         logger.info(f"Retrieved details for {method.upper()} {path}")
         return details

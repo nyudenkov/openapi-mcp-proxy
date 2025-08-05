@@ -145,6 +145,11 @@ class ToolDefinitionMixin:
                 "api": {"type": "string", "description": "API name or direct URL"},
                 "path": {"type": "string", "description": "Endpoint path"},
                 "method": {"type": "string", "description": "HTTP method"},
+                "include_responses": {
+                    "type": "boolean",
+                    "description": "Whether to include responses in details. Use it, for example, to get full details for a specific endpoint or pass False to get a summary.",
+                    "default": True,
+                },
             },
             "required": ["api", "path", "method"],
         }
