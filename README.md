@@ -82,28 +82,39 @@ uvx install git+https://github.com/nyudenkov/openapi-mcp-proxy.git
 openapi-mcp-proxy
 ```
 
-### 🎯 Claude Desktop Integration
+### 🎯 Desktop Extension (DXT)
 
-**For Claude Desktop users:**
+**For Claude Desktop and other MCP-compatible applications:**
 
-1. Download the `claude_package.json` file from this repository
-2. Place it in Claude Desktop's MCP servers directory:
-   - **macOS**: `~/Library/Application Support/Claude/mcp_servers/`
-   - **Windows**: `%APPDATA%\Claude\mcp_servers\`
-   - **Linux**: `~/.config/claude/mcp_servers/`
-3. Restart Claude Desktop
+This project includes a Desktop Extension (DXT) package for single-click installation in MCP-compatible applications:
 
-Alternatively, install via uvx first, then configure in Claude Desktop's settings:
+1. **Download the DXT package** (when available) or create it from source:
+   ```bash
+   # Install the DXT CLI tool
+   npm install -g @anthropic-ai/dxt
+   
+   # Clone this repository
+   git clone https://github.com/nyudenkov/openapi-mcp-proxy.git
+   cd openapi-mcp-proxy
+   
+   # Create the DXT package
+   dxt pack
+   ```
 
-```json
-{
-  "mcpServers": {
-    "openapi-mcp-proxy": {
-      "command": "openapi-mcp-proxy"
-    }
-  }
-}
-```
+2. **Install in Claude Desktop**: Open the generated `.dxt` file with Claude Desktop for automatic installation
+
+3. **Manual configuration**: Alternatively, configure manually in Claude Desktop's settings:
+   ```json
+   {
+     "mcpServers": {
+       "openapi-mcp-proxy": {
+         "command": "openapi-mcp-proxy"
+       }
+     }
+   }
+   ```
+
+The `manifest.json` file in this repository contains the complete DXT specification for this MCP server.
 
 ### 🔧 Development Installation
 

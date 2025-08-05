@@ -54,11 +54,11 @@ echo "  docker-compose up"
 echo "Status: ✅ Ready - includes persistent volume configuration"
 echo
 
-# Method 7: Claude Desktop Integration
-echo "🤖 Method 7: Claude Desktop Integration"
+# Method 7: Desktop Extension (DXT)
+echo "🎯 Method 7: Desktop Extension (DXT)"
 echo "Files:"
-echo "  claude_package.json - Complete MCP server configuration"
-echo "Status: ✅ Ready - comprehensive integration metadata"
+echo "  manifest.json - DXT extension specification"
+echo "Status: ✅ Ready - proper DXT format for MCP applications"
 echo
 
 echo "📋 Summary:"
@@ -72,7 +72,7 @@ echo "🎯 The OpenAPI MCP Proxy is now easily installable through:"
 echo "   • Docker (recommended for isolation)"
 echo "   • uvx (recommended for Python users)"
 echo "   • pip (traditional Python installation)"
-echo "   • Claude Desktop (direct MCP integration)"
+echo "   • Desktop Extension/DXT (single-click MCP installation)"
 echo "   • Development setup (for contributors)"
 echo
 

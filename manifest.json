@@ -1,0 +1,83 @@
+{
+  "dxt_version": "0.1",
+  "name": "openapi-mcp-proxy",
+  "display_name": "OpenAPI MCP Proxy",
+  "version": "0.1.0",
+  "description": "MCP Server for OpenAPI Schema Exploration - explore large OpenAPI schemas efficiently without loading entire schemas into LLM context",
+  "long_description": "OpenAPI MCP Proxy is a Model Context Protocol (MCP) server that enables efficient exploration of large OpenAPI schemas. Instead of loading entire schemas into LLM context, it provides paginated access to endpoints, models, and detailed schema information. Features include API configuration management, smart caching, endpoint discovery and search, pagination support for large APIs, and detailed schema exploration.",
+  "author": {
+    "name": "OpenAPI MCP Proxy Contributors"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nyudenkov/openapi-mcp-proxy"
+  },
+  "homepage": "https://github.com/nyudenkov/openapi-mcp-proxy",
+  "support": "https://github.com/nyudenkov/openapi-mcp-proxy/issues",
+  "keywords": [
+    "mcp",
+    "openapi",
+    "api",
+    "schema",
+    "exploration",
+    "claude",
+    "swagger"
+  ],
+  "server": {
+    "type": "python",
+    "entry_point": "openapi_mcp_proxy/main.py",
+    "mcp_config": {
+      "command": "python",
+      "args": [
+        "${__dirname}/openapi_mcp_proxy/main.py"
+      ],
+      "env": {}
+    }
+  },
+  "capabilities": [
+    "API configuration management",
+    "OpenAPI schema caching",
+    "Endpoint discovery and search",
+    "Pagination support for large APIs",
+    "Detailed schema exploration",
+    "Model schema analysis"
+  ],
+  "tools": [
+    {
+      "name": "add_api",
+      "description": "Add a new API configuration with name, URL and optional authentication headers"
+    },
+    {
+      "name": "list_saved_apis",
+      "description": "List all saved API configurations"
+    },
+    {
+      "name": "remove_api",
+      "description": "Remove a saved API configuration"
+    },
+    {
+      "name": "get_api_info",
+      "description": "Get general information about an API"
+    },
+    {
+      "name": "list_endpoints",
+      "description": "List all endpoints in an API with pagination and filtering"
+    },
+    {
+      "name": "search_endpoints",
+      "description": "Search endpoints by query with pagination and filtering"
+    },
+    {
+      "name": "get_endpoint_details",
+      "description": "Get detailed information about a specific endpoint"
+    },
+    {
+      "name": "list_models",
+      "description": "List all data models in an API with pagination and filtering"
+    },
+    {
+      "name": "get_model_schema",
+      "description": "Get detailed schema for a specific model"
+    }
+  ]
+}
