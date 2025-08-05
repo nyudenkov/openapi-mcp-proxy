@@ -11,6 +11,12 @@ An MCP server that provides tools for exploring large OpenAPI schemas without lo
 - **Detailed Schema Exploration**: Get comprehensive information about endpoints and data models
 - **Efficient Context Usage**: Explore large APIs without overwhelming LLM context windows
 
+<div align="center">
+
+![Demo](demonstration.gif)
+
+</div>
+
 ## Installation
 
 1. Clone the repository:

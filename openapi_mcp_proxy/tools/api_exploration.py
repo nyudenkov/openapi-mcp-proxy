@@ -199,7 +199,7 @@ class GetEndpointDetailsTool(APITool, ToolDefinitionMixin):
                 arguments["api"],
                 arguments["path"],
                 arguments["method"],
-                arguments["include_responses"],
+                arguments.get("include_responses", True),
             )
             result = self.explorer.format_endpoint_details(details)
             return self._create_text_response(result)
