@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  openapi-mcp-proxy:
+    build: .
+    container_name: openapi-mcp-proxy
+    restart: unless-stopped
+    volumes:
+      # Mount a volume for persistent configuration
+      - ./data:/app/data
+    environment:
+      # Configure where config files are stored
+      - CONFIG_FILE_PATH=/app/data/api_configs.json
+      - LOG_FILE=/app/data/server.log
+    stdin_open: true
+    tty: true
+    # For MCP servers, we typically use stdio, so no ports are exposed
+    # If you need to expose ports for debugging or other purposes, uncomment:
+    # ports:
+    #   - "8080:8080"
+    
+    # Health check to ensure the service is running properly
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "openapi-mcp-proxy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+# Create a named volume for data persistence
+volumes:
+  data:
+    driver: local

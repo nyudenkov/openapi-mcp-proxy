@@ -1,0 +1,103 @@
+{
+  "name": "openapi-mcp-proxy",
+  "version": "0.1.0",
+  "description": "MCP Server for OpenAPI Schema Exploration - explore large OpenAPI schemas efficiently without loading entire schemas into LLM context",
+  "author": "OpenAPI MCP Proxy Contributors",
+  "license": "MIT",
+  "homepage": "https://github.com/nyudenkov/openapi-mcp-proxy",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nyudenkov/openapi-mcp-proxy.git"
+  },
+  "keywords": [
+    "mcp",
+    "openapi",
+    "api",
+    "schema",
+    "exploration",
+    "claude",
+    "swagger"
+  ],
+  "mcp": {
+    "server": {
+      "name": "openapi-mcp-proxy",
+      "description": "Explore OpenAPI schemas efficiently with pagination and smart caching",
+      "version": "0.1.0",
+      "executable": {
+        "type": "python",
+        "module": "openapi_mcp_proxy.main",
+        "function": "run"
+      },
+      "requirements": {
+        "python": ">=3.12"
+      },
+      "installation": {
+        "methods": [
+          {
+            "type": "uv",
+            "command": "uv tool install git+https://github.com/nyudenkov/openapi-mcp-proxy.git"
+          },
+          {
+            "type": "pip",
+            "command": "pip install git+https://github.com/nyudenkov/openapi-mcp-proxy.git"
+          },
+          {
+            "type": "docker",
+            "command": "docker run -it --rm ghcr.io/nyudenkov/openapi-mcp-proxy:latest"
+          }
+        ]
+      },
+      "capabilities": [
+        "API configuration management",
+        "OpenAPI schema caching",
+        "Endpoint discovery and search",
+        "Pagination support for large APIs",
+        "Detailed schema exploration",
+        "Model schema analysis"
+      ],
+      "tools": [
+        {
+          "name": "add_api",
+          "description": "Add a new API configuration with name, URL and optional authentication headers"
+        },
+        {
+          "name": "list_saved_apis",
+          "description": "List all saved API configurations"
+        },
+        {
+          "name": "remove_api",
+          "description": "Remove a saved API configuration"
+        },
+        {
+          "name": "get_api_info",
+          "description": "Get general information about an API"
+        },
+        {
+          "name": "list_endpoints",
+          "description": "List all endpoints in an API with pagination and filtering"
+        },
+        {
+          "name": "search_endpoints",
+          "description": "Search endpoints by query with pagination and filtering"
+        },
+        {
+          "name": "get_endpoint_details",
+          "description": "Get detailed information about a specific endpoint"
+        },
+        {
+          "name": "list_models",
+          "description": "List all data models in an API with pagination and filtering"
+        },
+        {
+          "name": "get_model_schema",
+          "description": "Get detailed schema for a specific model"
+        }
+      ]
+    }
+  },
+  "claude_desktop": {
+    "server_command": "openapi-mcp-proxy",
+    "server_args": [],
+    "environment_variables": {}
+  }
+}
