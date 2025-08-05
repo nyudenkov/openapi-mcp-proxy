@@ -60,9 +60,14 @@ API configurations are automatically saved to `api_configs.json` in the working 
 {
   "apis": {
     "api-name": {
-      "name": "api-name",
-      "url": "http://example.com",
-      "description": "Optional description"
+      "name": "some-project-local-backend",
+      "url": "http://127.0.0.1:8000/openapi.json",
+      "description": "Optional description for some cool project local backend scheme"
+    },
+    "api-name": {
+      "name": "stripe-yaml",
+      "url": "https://raw.githubusercontent.com/stripe/openapi/refs/heads/master/openapi/spec3.yaml",
+      "description": "Stripe YAML OpenAPI scheme"
     }
   }
 }
