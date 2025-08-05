@@ -70,19 +70,4 @@ API configurations are automatically saved to `api_configs.json` in the working 
 
 ## API Requirements
 
-The server expects APIs to serve OpenAPI schemas at `/openapi.json` endpoint.
-
-## Architecture
-
-### Core Components
-
-- **`OpenAPICache`**: Manages schema caching and HTTP requests
-- **`ConfigManager`**: Handles persistent API configuration storage
-- **`OpenAPIExplorer`**: Main logic for schema exploration and analysis
-- **MCP Server**: Exposes functionality through standardized MCP tools
-
-### Data Models
-
-- **`ApiConfig`**: Configuration for saved APIs
-- **`EndpointInfo`**: Structured endpoint information
-- **`ModelInfo`**: Data model metadata
+The server expects OpenAPI scheme to be in json format.
