@@ -10,6 +10,3 @@ dependencies = [
     "mcp>=1.12.3",
     "pydantic>=2.11.7",
 ]
-
-[project.scripts]
-openapi-mcp-proxy = "main:main"
