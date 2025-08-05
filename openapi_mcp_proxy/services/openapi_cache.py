@@ -5,6 +5,7 @@ import logging
 from typing import Any, Dict, Optional
 
 import httpx
+import yaml
 
 logger = logging.getLogger(__name__)
 
@@ -36,9 +37,37 @@ class OpenAPICache:
         try:
             response = await self._client.get(url, headers=headers)
             response.raise_for_status()
-            schema = response.json()
-            logger.info(f"Successfully fetched schema from {url}")
+
+            # Detect format based on content-type or URL extension
+            content_type = response.headers.get("content-type", "").lower()
+            is_yaml = (
+                "yaml" in content_type
+                or "yml" in content_type
+                or url.endswith(".yaml")
+                or url.endswith(".yml")
+            )
+
+            if is_yaml:
+                schema = yaml.safe_load(response.text)
+                logger.debug(f"Parsed YAML schema from {url}")
+            else:
+                schema = response.json()
+                logger.debug(f"Parsed JSON schema from {url}")
+
+            # Validate that we got a valid OpenAPI schema
+            if not isinstance(schema, dict):
+                raise ValueError("Schema is not a valid dictionary")
+
+            if "openapi" not in schema and "swagger" not in schema:
+                raise ValueError(
+                    "Response does not appear to be an OpenAPI/Swagger schema"
+                )
+
             return schema
+
+        except yaml.YAMLError as e:
+            logger.error(f"YAML parsing error for {url}: {e}")
+            raise ValueError(f"Invalid YAML format: {e}")
         except httpx.HTTPStatusError as e:
             logger.error(f"HTTP error fetching schema from {url}: {e}")
             raise

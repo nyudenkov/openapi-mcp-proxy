@@ -25,11 +25,13 @@ class OpenAPIExplorer:
         schema = await self.cache.get_schema(url, headers)
 
         info = schema.get("info", {})
+        base_url = self._get_base_url_from_schema(schema)
+
         return ApiInfo(
             title=info.get("title", "Unknown"),
             version=info.get("version", "Unknown"),
             description=info.get("description", ""),
-            base_url=url.replace("/openapi.json", ""),
+            base_url=base_url,
             tags=[tag.get("name") for tag in schema.get("tags", [])],
         )
 
@@ -188,3 +190,23 @@ class OpenAPIExplorer:
         """Check if a method is a valid HTTP method."""
         valid_methods = {"get", "post", "put", "delete", "patch", "head", "options"}
         return method.lower() in valid_methods
+
+    @staticmethod
+    def _get_base_url_from_schema(schema: Dict[str, Any]) -> str:
+        """Extract base URL from OpenAPI schema's servers field."""
+        servers = schema.get("servers", [])
+        if servers and isinstance(servers, list) and len(servers) > 0:
+            first_server = servers[0]
+            if isinstance(first_server, dict) and "url" in first_server:
+                return first_server["url"]
+
+        # Try Swagger 2.0 style (host + basePath)
+        host = schema.get("host")
+        if host:
+            schemes = schema.get("schemes", ["https"])
+            scheme = schemes[0] if schemes else "https"
+            base_path = schema.get("basePath", "")
+            return f"{scheme}://{host}{base_path}"
+
+        # Fallback - no reliable base URL available
+        return ""

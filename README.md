@@ -67,7 +67,3 @@ API configurations are automatically saved to `api_configs.json` in the working 
   }
 }
 ```
-
-## API Requirements
-
-The server expects OpenAPI scheme to be in json format.
