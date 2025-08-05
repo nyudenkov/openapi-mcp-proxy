@@ -98,6 +98,22 @@
   "claude_desktop": {
     "server_command": "openapi-mcp-proxy",
     "server_args": [],
-    "environment_variables": {}
+    "environment_variables": {},
+    "installation_guide": {
+      "quick_start": "uvx install git+https://github.com/nyudenkov/openapi-mcp-proxy.git",
+      "alternative_methods": [
+        "pip install git+https://github.com/nyudenkov/openapi-mcp-proxy.git",
+        "docker run -it --rm ghcr.io/nyudenkov/openapi-mcp-proxy:latest"
+      ],
+      "usage_example": {
+        "description": "After installation, add APIs and explore their schemas efficiently",
+        "first_steps": [
+          "Use add_api to register an OpenAPI schema URL",
+          "Use list_endpoints to explore available endpoints with pagination", 
+          "Use search_endpoints to find specific functionality",
+          "Use get_endpoint_details for comprehensive endpoint information"
+        ]
+      }
+    }
   }
 }
