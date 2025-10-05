@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/nyudenkov-openapi-mcp-proxy-badge.png)](https://mseep.ai/app/nyudenkov-openapi-mcp-proxy)
+
 # OpenAPI MCP Server
 
 An MCP server that provides tools for exploring large OpenAPI schemas without loading entire schemas into LLM context. Perfect for discovering and analyzing endpoints, data models, and API structure efficiently.
