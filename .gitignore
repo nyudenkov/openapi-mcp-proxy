@@ -9,4 +9,9 @@ wheels/
 # Virtual environments
 .venv
 
+# Configuration and data files
 api_configs.json
+*.log
+
+# Docker volumes
+data/
