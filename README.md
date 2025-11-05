@@ -2,6 +2,10 @@
 
 An MCP server that provides tools for exploring large OpenAPI schemas without loading entire schemas into LLM context. Perfect for discovering and analyzing endpoints, data models, and API structure efficiently.
 
+<a href="https://glama.ai/mcp/servers/@nyudenkov/openapi-mcp-proxy">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/@nyudenkov/openapi-mcp-proxy/badge" alt="openapi-mcp-proxy MCP server" />
+</a>
+
 ## Features
 
 - **API Configuration Management**: Save and manage multiple API configurations with authentication headers if needed
